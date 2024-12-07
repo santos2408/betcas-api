@@ -1,0 +1,64 @@
+import { http_api_football } from "../../services/axiosService.js";
+
+import SupabaseGetChampionshipsByIdRepository from "../../repositories/supabase/championships/get-championships-by-id.js";
+import SupabaseCreateChampionshipsRepository from "../../repositories/supabase/championships/create-championships.js";
+import SupabaseUpdateChampionshipsByIdRepository from "../../repositories/supabase/championships/update-championships-by-id.js";
+
+export default class GetChampionshipByIdUseCase {
+  async execute() {
+    try {
+      const response = await http_api_football.get("/campeonatos");
+      const championships_api = response.data;
+
+      championships_api.forEach(async (championship_api) => {
+        const params = { id: championship_api.campeonato_id };
+        const supabaseGetChampionshipsByIdRepository = new SupabaseGetChampionshipsByIdRepository();
+        const { data, error } = await supabaseGetChampionshipsByIdRepository.execute(params);
+
+        // console.log(data);
+
+        // already exists
+        if (data) {
+          const id = data.id;
+          const championship_api_status = championship_api.status === "andamento" ? true : false;
+          const currentStatus = data.status;
+
+          if (currentStatus === championship_api_status) {
+            return;
+          }
+
+          // should update status
+          const params = { id, status: championship_api_status };
+          const supabaseUpdateChampionshipsByIdRepository = new SupabaseUpdateChampionshipsByIdRepository();
+          const { error: errorUpdateChampionshipsById } = await supabaseUpdateChampionshipsByIdRepository.execute(params);
+
+          if (errorUpdateChampionshipsById) {
+            throw errorUpdateChampionshipsById;
+          }
+
+          return;
+        }
+
+        const championship = {
+          championship_api_id: championship_api.campeonato_id,
+          name: championship_api.nome,
+          popular_name: championship_api.nome_popular,
+          slug: championship_api.slug,
+          status: championship_api.status === "finalizado" ? false : true,
+          logo: championship_api.logo,
+        };
+
+        const supabaseCreateChampionshipsRepository = new SupabaseCreateChampionshipsRepository();
+        const { error: errorCreateChampionships } = await supabaseCreateChampionshipsRepository.execute({ championship });
+
+        if (errorCreateChampionships) {
+          throw errorCreateChampionships;
+        }
+      });
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error(error);
+      }
+    }
+  }
+}
