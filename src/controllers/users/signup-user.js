@@ -1,6 +1,6 @@
 import supabaseAuthErrorMessages from "../../errors/supabase-auth-error-messages.js";
 import { isAuthApiError } from "../../config/database.js";
-import { badRequest, ok, serverError, notFound } from "../helpers.js";
+import { badRequest, ok, serverError } from "../helpers.js";
 
 import SignUpUserUseCase from "../../use-cases/users/signup-user.js";
 import validator from "validator";
