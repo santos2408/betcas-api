@@ -11,7 +11,7 @@ create table if not exists users (
   name varchar(100),
   email varchar(100),
   cpf CHAR(11) UNIQUE,
-  phone varchar(20) NOT NULL,
+  phone varchar(11) NOT NULL,
   role role_enum DEFAULT 'user' NOT NULL,
   created_at timestamp with time zone default current_timestamp NOT NULL,
   updated_at timestamp with time zone default current_timestamp NOT NULL

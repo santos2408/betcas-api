@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS championships (
   name VARCHAR(100) NOT NULL,
   slug VARCHAR(100) NOT NULL,
   popular_name VARCHAR(100),
-  logo TEXT,
+  logo TEXT NOT NULL,
   status BOOLEAN DEFAULT false NOT NULL,
   created_at timestamp with time zone default current_timestamp NOT NULL,
   updated_at timestamp with time zone default current_timestamp NOT NULL
