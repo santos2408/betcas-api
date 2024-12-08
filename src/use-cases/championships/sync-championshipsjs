@@ -7,15 +7,19 @@ import SupabaseUpdateChampionshipsByIdRepository from "../../repositories/supaba
 export default class GetChampionshipByIdUseCase {
   async execute() {
     try {
-      const response = await http_api_football.get("/campeonatos");
-      const championships_api = response.data;
+      const response = await http_api_football.get("/me");
+      const availableChampionships = response.data.campeonatos;
 
-      championships_api.forEach(async (championship_api) => {
-        const params = { id: championship_api.campeonato_id };
+      // console.log(availableChampionships);
+
+      availableChampionships.forEach(async (availableChampionship) => {
+        const availableChampionshipId = availableChampionship.campeonato_id;
+        const response = await http_api_football.get(`/campeonatos/${availableChampionshipId}`);
+        const championship_api = response.data;
+
+        const params = { id: availableChampionshipId };
         const supabaseGetChampionshipsByIdRepository = new SupabaseGetChampionshipsByIdRepository();
         const { data, error } = await supabaseGetChampionshipsByIdRepository.execute(params);
-
-        // console.log(data);
 
         // already exists
         if (data) {
@@ -44,12 +48,14 @@ export default class GetChampionshipByIdUseCase {
           name: championship_api.nome,
           popular_name: championship_api.nome_popular,
           slug: championship_api.slug,
-          status: championship_api.status === "finalizado" ? false : true,
+          status: championship_api.status === "andamento" ? true : false,
           logo: championship_api.logo,
         };
 
         const supabaseCreateChampionshipsRepository = new SupabaseCreateChampionshipsRepository();
         const { error: errorCreateChampionships } = await supabaseCreateChampionshipsRepository.execute({ championship });
+
+        console.log(errorCreateChampionships);
 
         if (errorCreateChampionships) {
           throw errorCreateChampionships;
