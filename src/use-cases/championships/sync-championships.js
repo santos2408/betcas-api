@@ -4,13 +4,11 @@ import SupabaseGetChampionshipsByIdRepository from "../../repositories/supabase/
 import SupabaseCreateChampionshipsRepository from "../../repositories/supabase/championships/create-championships.js";
 import SupabaseUpdateChampionshipsByIdRepository from "../../repositories/supabase/championships/update-championships-by-id.js";
 
-export default class GetChampionshipByIdUseCase {
+export default class SyncChampionships {
   async execute() {
     try {
       const response = await http_api_football.get("/me");
       const availableChampionships = response.data.campeonatos;
-
-      // console.log(availableChampionships);
 
       availableChampionships.forEach(async (availableChampionship) => {
         const availableChampionshipId = availableChampionship.campeonato_id;
@@ -19,12 +17,12 @@ export default class GetChampionshipByIdUseCase {
 
         const params = { id: availableChampionshipId };
         const supabaseGetChampionshipsByIdRepository = new SupabaseGetChampionshipsByIdRepository();
-        const { data, error } = await supabaseGetChampionshipsByIdRepository.execute(params);
+        const { data } = await supabaseGetChampionshipsByIdRepository.execute(params);
 
         // already exists
         if (data) {
           const id = data.id;
-          const championship_api_status = championship_api.status === "andamento" ? true : false;
+          const championship_api_status = championship_api.status === "finalizado" ? false : true;
           const currentStatus = data.status;
 
           if (currentStatus === championship_api_status) {
@@ -48,14 +46,12 @@ export default class GetChampionshipByIdUseCase {
           name: championship_api.nome,
           popular_name: championship_api.nome_popular,
           slug: championship_api.slug,
-          status: championship_api.status === "andamento" ? true : false,
+          status: championship_api.status === "finalizado" ? false : true,
           logo: championship_api.logo,
         };
 
         const supabaseCreateChampionshipsRepository = new SupabaseCreateChampionshipsRepository();
         const { error: errorCreateChampionships } = await supabaseCreateChampionshipsRepository.execute({ championship });
-
-        console.log(errorCreateChampionships);
 
         if (errorCreateChampionships) {
           throw errorCreateChampionships;

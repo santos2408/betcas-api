@@ -1,11 +1,21 @@
 import cron from "node-cron";
 
-import SyncChampionships from "../../use-cases/championships/sync-championshipsjs";
+import SyncChampionships from "../../use-cases/championships/sync-championships.js";
+import SyncRounds from "../../use-cases/rounds/sync-rounds.js";
 
 const cronJobs = () => {
-  cron.schedule("* 3 * * *", async () => {
+  const schedule = {
+    live: "* 3 * * *",
+    test: "*/10 * * * * *",
+  };
+
+  cron.schedule(schedule.test, async () => {
     const syncChampionships = new SyncChampionships();
-    await syncChampionships.execute();
+    const syncRounds = new SyncRounds();
+
+    const promises = [syncChampionships.execute(), syncRounds.execute()];
+    await Promise.all(promises);
+
     console.log("Agendamentos executados com sucesso!");
   });
 };
